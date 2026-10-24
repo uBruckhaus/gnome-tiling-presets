@@ -76,6 +76,16 @@ export class Tiler {
                 this._scratch.add(window);
         }
         this._readRatios();
+        if (this._settings.get_boolean('debug')) {
+            for (const window of windows) {
+                const workspace = window.get_workspace();
+                const why = this.whyNotTiled(window);
+                this._log(`window "${window.get_title()}" (${window.get_wm_class()}) on workspace ` +
+                    `${(workspace?.index() ?? -2) + 1}, monitor ${window.get_monitor()}, layout ` +
+                    `${workspace ? this._layoutFor(workspace) : '-'}: ${why ? `not tiled, ${why}` : 'tiled'}`);
+            }
+            this._log(`paused ${this.paused}, ${windows.length} windows`);
+        }
         this.retileAll();
     }
 
@@ -169,17 +179,38 @@ export class Tiler {
     }
 
     isTileable(window) {
-        if (!window || window.get_window_type() !== Meta.WindowType.NORMAL || this._opening.has(window))
-            return false;
+        return this.whyNotTiled(window) === '';
+    }
+
+    // Why a window stays out of layouts; '' when it can be tiled.
+    whyNotTiled(window) {
+        if (!window || window.get_window_type() !== Meta.WindowType.NORMAL)
+            return 'not a normal window';
+        if (this._opening.has(window))
+            return 'still opening';
         if (this._scratch.has(window))
-            return false;
-        if (window.minimized || window.is_fullscreen() || window.is_above() ||
-            window.is_on_all_workspaces() || window.is_skip_taskbar())
-            return false;
-        if (window.get_transient_for() || !window.allows_resize())
-            return false;
+            return 'on the scratchpad';
+        if (window.minimized)
+            return 'minimized';
+        if (window.is_fullscreen())
+            return 'fullscreen';
+        if (window.is_above())
+            return 'floating (always on top)';
+        if (window.is_on_all_workspaces())
+            return 'on all workspaces';
+        if (window.is_skip_taskbar())
+            return 'not in the taskbar';
+        if (window.get_transient_for())
+            return 'a dialog of another window';
+        // GNOME reports fully maximized windows as not resizable; only a window that is not
+        // and still cannot be resized has a fixed size. Apps like Ptyxis open maximized when
+        // they were closed that way.
+        if (!window.allows_resize() && !this._isMaximized(window))
+            return 'fixed size';
         // A window the user maximized after it was arranged stays out until restored.
-        return !(this._placed.has(window) && this._isMaximized(window));
+        if (this._placed.has(window) && this._isMaximized(window))
+            return 'maximized';
+        return '';
     }
 
     tileableWindows(workspace) {
@@ -416,7 +447,8 @@ export class Tiler {
 
     _onWindowReady(window) {
         this._log(`ready: "${window.get_title()}" on workspace ${(window.get_workspace()?.index() ?? -2) + 1}, ` +
-            `tileable ${this.isTileable(window)}`);
+            `${this.whyNotTiled(window) || 'tileable'} (maximized ${window.get_maximize_flags()}, ` +
+            `resizable ${window.allows_resize()})`);
         this._rememberSize(window);
         if (this.claimWindow?.(window))
             return;

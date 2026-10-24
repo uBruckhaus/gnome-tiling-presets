@@ -117,6 +117,7 @@ gnome-extensions enable tiling-presets@ubruckhaus.github.io
   while on and after disabling; `LAYOUT=us`, `fr`, … for other layouts, default `de`;
   `menu` takes `LAYOUT` too), `former` (Super + Ctrl + Tab after GNOME removed a
   workspace and renumbered the rest).
+  `ptyxis` (apps that open maximized, like Ptyxis with a restored large size).
   Screenshots go to `dist/screenshots/`.
   `FIXED=1` runs any scenario with GNOME's fixed workspaces instead of dynamic ones.
 - `gsettings set org.gnome.shell.extensions.tiling-presets debug true` writes the
