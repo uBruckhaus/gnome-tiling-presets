@@ -1,0 +1,103 @@
+.tp-header {
+  font-weight: bold;
+}
+
+.tp-rows {
+  spacing: 6px;
+}
+
+.tp-row {
+  spacing: 6px;
+}
+
+.tp-button {
+  border-radius: 8px;
+  padding: 6px 4px;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.tp-button:hover,
+.tp-button:focus {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.tp-button:checked {
+  background-color: -st-accent-color;
+  color: -st-accent-fg-color;
+}
+
+.tp-button:insensitive {
+  color: rgba(255, 255, 255, 0.35);
+  background-color: transparent;
+}
+
+.tp-layout-button {
+  min-width: 72px;
+}
+
+.tp-layout-icon {
+  icon-size: 24px;
+  margin-bottom: 4px;
+}
+
+.tp-layout-label {
+  font-size: 0.85em;
+}
+
+.tp-limit-button {
+  min-width: 32px;
+  margin-left: 4px;
+  padding: 4px 6px;
+}
+
+.tp-apps {
+  spacing: 6px;
+}
+
+.tp-app-icon {
+  icon-size: 24px;
+}
+
+.tp-dim {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Workspace numbers in the top bar */
+.panel-button.tp-workspaces,
+.panel-button.tp-workspaces:hover,
+.panel-button.tp-workspaces:active {
+  background-color: transparent;
+  box-shadow: none;
+  -natural-hpadding: 2px;
+  -minimum-hpadding: 2px;
+}
+
+.tp-workspaces-box {
+  spacing: 0;
+}
+
+.tp-ws-button {
+  padding: 0 1px;
+}
+
+.tp-ws-pill {
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 99px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tp-ws-button:hover .tp-ws-pill,
+.tp-ws-button:focus .tp-ws-pill {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.tp-ws-button:checked .tp-ws-pill {
+  background-color: -st-accent-color;
+  color: -st-accent-fg-color;
+}
+
+.tp-ws-empty .tp-ws-pill {
+  color: rgba(255, 255, 255, 0.45);
+}

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="tiling-presets">
+  <schema id="org.gnome.shell.extensions.tiling-presets" path="/org/gnome/shell/extensions/tiling-presets/">
+    <key name="paused" type="b">
+      <default>false</default>
+      <summary>Tiling switched off</summary>
+      <description>While off, windows are neither arranged nor moved to another workspace. The settings show it as the "Tiling" switch.</description>
+    </key>
+    <key name="default-layout" type="s">
+      <choices>
+        <choice value="floating"/>
+        <choice value="auto"/>
+        <choice value="side-by-side"/>
+        <choice value="stacked"/>
+        <choice value="master-left"/>
+        <choice value="master-right"/>
+        <choice value="columns"/>
+        <choice value="grid"/>
+      </choices>
+      <default>"floating"</default>
+      <summary>Layout of workspaces without a preset of their own</summary>
+    </key>
+    <key name="default-limit" type="i">
+      <range min="0" max="4"/>
+      <default>2</default>
+      <summary>Window limit of workspaces without a preset of their own (0: no limit)</summary>
+    </key>
+    <key name="workspace-presets" type="s">
+      <default>"{}"</default>
+      <summary>Presets of single workspaces</summary>
+      <description>JSON object: workspace number to {"layout", "limit"}.</description>
+    </key>
+    <key name="app-presets" type="s">
+      <default>"{}"</default>
+      <summary>Saved App Presets</summary>
+      <description>JSON object: workspace number to the saved apps and windows.</description>
+    </key>
+    <key name="gap" type="i">
+      <range min="0" max="48"/>
+      <default>8</default>
+      <summary>Gap around and between tiled windows, in pixels</summary>
+    </key>
+    <key name="follow-overflow" type="b">
+      <default>true</default>
+      <summary>Follow a window moved to the next workspace</summary>
+    </key>
+    <key name="restore-conflicts" type="s">
+      <choices>
+        <choice value="move"/>
+        <choice value="keep"/>
+        <choice value="close"/>
+      </choices>
+      <default>"move"</default>
+      <summary>What restoring an App Preset does with other windows on the workspace</summary>
+    </key>
+    <key name="show-workspace-numbers" type="b">
+      <default>true</default>
+      <summary>Show workspace numbers in the top bar</summary>
+    </key>
+    <key name="workspace-numbers-minimum" type="i">
+      <range min="1" max="10"/>
+      <default>5</default>
+      <summary>Workspace numbers always shown; more appear when they are in use</summary>
+    </key>
+    <key name="focus-border" type="b">
+      <default>true</default>
+      <summary>Draw a border around the active window</summary>
+    </key>
+    <key name="focus-border-color" type="s">
+      <default>"#3584e4"</default>
+      <summary>Colour of the active window's border (CSS colour)</summary>
+    </key>
+    <key name="focus-border-width" type="i">
+      <range min="1" max="12"/>
+      <default>2</default>
+      <summary>Thickness of the active window's border, in pixels</summary>
+    </key>
+    <key name="focus-border-radius" type="i">
+      <range min="0" max="24"/>
+      <default>12</default>
+      <summary>Corner radius of the active window's border, in pixels</summary>
+    </key>
+    <key name="show-minimize-button" type="b">
+      <default>true</default>
+      <summary>Show the minimize button in title bars</summary>
+    </key>
+    <key name="show-maximize-button" type="b">
+      <default>true</default>
+      <summary>Show the maximize button in title bars</summary>
+    </key>
+    <key name="show-close-button" type="b">
+      <default>true</default>
+      <summary>Show the close button in title bars</summary>
+    </key>
+    <key name="header-double-click" type="b">
+      <default>true</default>
+      <summary>Double-click on a title bar floats or tiles the window</summary>
+      <description>On tiled workspaces; elsewhere it maximizes or restores the window, as in GNOME.</description>
+    </key>
+    <key name="saved-gnome-settings" type="s">
+      <default>"{}"</default>
+      <summary>The user's own GNOME window settings while the extension overrides them</summary>
+    </key>
+    <key name="debug" type="b">
+      <default>false</default>
+      <summary>Write debug messages to the journal</summary>
+    </key>
+  </schema>
+</schemalist>

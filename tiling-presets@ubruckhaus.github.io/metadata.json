@@ -1,0 +1,10 @@
+{
+  "uuid": "tiling-presets@ubruckhaus.github.io",
+  "name": "Tiling Presets",
+  "description": "Presets and App Presets for every workspace. Presets give a workspace a window limit and a tiling layout: side by side, stacked, master left or right, columns or a grid. New windows that don't fit move on to the next workspace with room. App Presets save the apps on a workspace and how they are arranged, and restore them with one click or at login.",
+  "shell-version": ["51"],
+  "url": "https://github.com/uBruckhaus/gnome-tiling-presets",
+  "settings-schema": "org.gnome.shell.extensions.tiling-presets",
+  "gettext-domain": "tiling-presets",
+  "version-name": "0.1.0"
+}
