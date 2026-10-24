@@ -11,6 +11,14 @@ const RETILE_DELAY = 40;           // ms; collects bursts of window events into 
 const UNMAXIMIZE_SETTLE = 200;     // ms; Wayland clients apply an unmaximize asynchronously
 const READY_TIMEOUT = 500;         // ms; a new window counts as shown after this at the latest
 
+// Per-window choices that outlive disable/enable (the screen lock) like the windows
+// themselves: weak, so closed windows are not kept.
+const kept = {
+    natural: new WeakMap(),   // window -> size it opened with (for pseudo-tiling)
+    pseudo: new WeakSet(),    // windows keeping their own size inside their tile
+    scratch: new WeakSet(),   // windows on the scratchpad
+};
+
 export class Tiler {
     constructor(settings, log) {
         this._settings = settings;
@@ -28,6 +36,10 @@ export class Tiler {
         this._placed = new WeakSet();  // windows this extension has arranged at least once
         this._opening = new WeakSet(); // new windows not shown yet; they join layouts when ready
         this._ratios = new WeakMap();  // workspace -> master share
+        this._floatRects = new WeakMap(); // window -> where it floated last
+        this._natural = kept.natural;
+        this._pseudo = kept.pseudo;
+        this._scratch = new Set();     // windows on the scratchpad, never tiled; see kept.scratch
         this._dirty = new Set();
         this._timeouts = new Set();
         this._retileId = 0;
@@ -58,6 +70,11 @@ export class Tiler {
         const rank = new Map(windows.map(window => [window, this._currentSlot(window)]));
         windows.sort((a, b) => rank.get(a) - rank.get(b));
         windows.forEach(window => this._track(window));
+        for (const window of windows) {
+            this._rememberSize(window);
+            if (kept.scratch.has(window))
+                this._scratch.add(window);
+        }
         this._readRatios();
         this.retileAll();
     }
@@ -74,7 +91,14 @@ export class Tiler {
             const own = windows.filter(window => window.get_monitor() === monitor);
             if (own.length < 2)
                 continue;
-            const share = this._masterShare(own[0], workspace.get_work_area_for_monitor(monitor));
+            // A pseudo-tiled window is narrower than its tile: measure one that fills it.
+            // The stack column has the rest of the width.
+            const area = workspace.get_work_area_for_monitor(monitor);
+            const full = own.findIndex(window => !this._pseudo.has(window));
+            if (full < 0)
+                continue;
+            const measured = this._masterShare(own[full], area);
+            const share = full === 0 ? measured : clampRatio(1 - measured);
             if (Math.abs(share - 0.5) > 0.02)
                 this._ratios.set(workspace, share);
         }
@@ -101,6 +125,7 @@ export class Tiler {
         this._timeouts.clear();
         this._dirty.clear();
         this._order.clear();
+        this._scratch.clear();
         this._grab = null;
         this.claimWindow = null;
     }
@@ -146,6 +171,8 @@ export class Tiler {
     isTileable(window) {
         if (!window || window.get_window_type() !== Meta.WindowType.NORMAL || this._opening.has(window))
             return false;
+        if (this._scratch.has(window))
+            return false;
         if (window.minimized || window.is_fullscreen() || window.is_above() ||
             window.is_on_all_workspaces() || window.is_skip_taskbar())
             return false;
@@ -179,6 +206,99 @@ export class Tiler {
                 return i;
         }
         return Meta.prefs_get_dynamic_workspaces() ? manager.n_workspaces : -1;
+    }
+
+    layoutOf(workspace) {
+        return this._layoutFor(workspace);
+    }
+
+    // Tiled: a tileable window on a workspace with a tiling layout, tiling not paused.
+    isTiled(window) {
+        const workspace = window?.get_workspace();
+        return Boolean(workspace) && !this.paused && this.isTileable(window) &&
+            isTilingLayout(this._layoutFor(workspace));
+    }
+
+    // Floating windows are "Always on Top", which keeps them out of layouts and above
+    // the tiled windows. They float centred, or where they floated last.
+    toggleFloating(window) {
+        if (window.is_above()) {
+            const frame = window.get_frame_rect();
+            this._floatRects.set(window, {x: frame.x, y: frame.y, width: frame.width, height: frame.height});
+            window.unmake_above();
+            return;
+        }
+        const workspace = window.get_workspace() ?? global.workspace_manager.get_active_workspace();
+        window.make_above();
+        const area = workspace.get_work_area_for_monitor(window.get_monitor());
+        let rect = this._floatRects.get(window);
+        const fits = rect && rect.x >= area.x && rect.y >= area.y &&
+            rect.x + rect.width <= area.x + area.width && rect.y + rect.height <= area.y + area.height;
+        if (!fits) {
+            const width = Math.round(area.width * 0.6);
+            const height = Math.round(area.height * 0.7);
+            rect = {
+                x: area.x + Math.round((area.width - width) / 2),
+                y: area.y + Math.round((area.height - height) / 2),
+                width, height,
+            };
+        }
+        window.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
+        window.raise();
+    }
+
+    // Two tiled windows trade places.
+    swap(window, other) {
+        const seq = this._order.get(window);
+        this._order.set(window, this._order.get(other));
+        this._order.set(other, seq);
+        this._queueFor(window);
+    }
+
+    // Resizing a tiled window by `dx` pixels changes the master's share in the master
+    // layouts. Returns false where tiled windows cannot change size.
+    resizeTiled(window, dx) {
+        const workspace = window.get_workspace();
+        if (!dx || !MASTER_LAYOUTS.includes(this._layoutFor(workspace)))
+            return false;
+        const {windows, area} = this._slots(workspace, window.get_monitor());
+        const index = windows.indexOf(window);
+        if (windows.length < 2 || index < 0)
+            return false;
+        const usable = Math.max(1, area.width - 3 * this._settings.get_int('gap'));
+        const share = this._ratios.get(workspace) ?? 0.5;
+        // The master grows with its own width; a stack window grows by shrinking the master.
+        const change = (index === 0 ? dx : -dx) / usable;
+        this._ratios.set(workspace, clampRatio(share + change));
+        this._queue(workspace);
+        return true;
+    }
+
+    togglePseudo(window) {
+        if (this._pseudo.has(window))
+            this._pseudo.delete(window);
+        else
+            this._pseudo.add(window);
+        this._queueFor(window);
+    }
+
+    isScratch(window) {
+        return this._scratch.has(window);
+    }
+
+    setScratch(window, on) {
+        if (on) {
+            this._scratch.add(window);
+            kept.scratch.add(window);
+        } else {
+            this._scratch.delete(window);
+            kept.scratch.delete(window);
+        }
+        this._queueFor(window);
+    }
+
+    scratchWindows() {
+        return [...this._scratch];
     }
 
     retileAll() {
@@ -249,6 +369,7 @@ export class Tiler {
             window.disconnect(id);
         this._tracked.delete(window);
         this._order.delete(window);
+        this._scratch.delete(window);
         if (this._grab?.window === window)
             this._grab = null;
     }
@@ -296,6 +417,7 @@ export class Tiler {
     _onWindowReady(window) {
         this._log(`ready: "${window.get_title()}" on workspace ${(window.get_workspace()?.index() ?? -2) + 1}, ` +
             `tileable ${this.isTileable(window)}`);
+        this._rememberSize(window);
         if (this.claimWindow?.(window))
             return;
         if (!this.paused)
@@ -394,12 +516,31 @@ export class Tiler {
             this._later(UNMAXIMIZE_SETTLE, () => this._queue(workspace));
     }
 
+    // The size a window opened with, before any layout changed it.
+    _rememberSize(window) {
+        if (this._natural.has(window) || this._isMaximized(window))
+            return;
+        const {width, height} = window.get_frame_rect();
+        this._natural.set(window, {width, height});
+    }
+
     // Returns true when the window had to be unmaximized first.
     _place(window, rect) {
         const unmaximize = window.get_maximize_flags() !== 0;
         if (unmaximize)
             window.unmaximize();
         this._placed.add(window);
+        const natural = this._pseudo.has(window) && this._natural.get(window);
+        if (natural) {
+            // Pseudo-tiled: its own size, no larger than the tile, centred in it.
+            const width = Math.min(natural.width, rect.width);
+            const height = Math.min(natural.height, rect.height);
+            rect = {
+                x: rect.x + Math.round((rect.width - width) / 2),
+                y: rect.y + Math.round((rect.height - height) / 2),
+                width, height,
+            };
+        }
         const frame = window.get_frame_rect();
         if (frame.x === rect.x && frame.y === rect.y &&
             frame.width === rect.width && frame.height === rect.height)

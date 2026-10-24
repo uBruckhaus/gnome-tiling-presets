@@ -29,7 +29,6 @@ export class HeaderDoubleClick {
     }
 
     enable() {
-        this._floatRects = new WeakMap();
         this._restoreRects = new WeakMap();  // size before maximizing, to restore it
         this._pending = new Map();           // window -> {ids, timeoutId}
         this._timeouts = new Set();
@@ -154,35 +153,10 @@ export class HeaderDoubleClick {
             isTilingLayout(presetFor(this._settings, workspace.index() + 1).layout);
         if (tiling) {
             window.unmaximize();
-            this._toggleFloating(window, workspace);
+            this._tiler.toggleFloating(window);
         } else {
             this._restoreRects.set(window, before);
             window.set_maximize_flags(Meta.MaximizeFlags.HORIZONTAL);
         }
-    }
-
-    _toggleFloating(window, workspace) {
-        if (window.is_above()) {
-            const frame = window.get_frame_rect();
-            this._floatRects.set(window, {x: frame.x, y: frame.y, width: frame.width, height: frame.height});
-            window.unmake_above();
-            return;
-        }
-        window.make_above();
-        const area = workspace.get_work_area_for_monitor(window.get_monitor());
-        let rect = this._floatRects.get(window);
-        const fits = rect && rect.x >= area.x && rect.y >= area.y &&
-            rect.x + rect.width <= area.x + area.width && rect.y + rect.height <= area.y + area.height;
-        if (!fits) {
-            const width = Math.round(area.width * 0.6);
-            const height = Math.round(area.height * 0.7);
-            rect = {
-                x: area.x + Math.round((area.width - width) / 2),
-                y: area.y + Math.round((area.height - height) / 2),
-                width, height,
-            };
-        }
-        window.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
-        window.raise();
     }
 }

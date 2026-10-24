@@ -7,6 +7,7 @@ import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _, ngettext} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {appPresets, readJSON, setAppPreset, setWorkspacePreset} from './config.js';
+import {ALREADY_IN_GNOME, GROUPS, NOT_IN_GNOME, gnomeKeybindings, keyNameLabel, rowKeysLabel, takenBy} from './keys.js';
 import {LAYOUTS, LIMITS} from './layouts.js';
 
 function layoutNames() {
@@ -212,6 +213,10 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
         gnome.add(count);
         workspacesPage.add(gnome);
 
+        // --- Shortcuts -------------------------------------------------------------
+        const shortcutsPage = this._shortcutsPage(settings);
+        window.add(shortcutsPage);
+
         // --- Presets ---------------------------------------------------------------
         // Workspace presets and App Presets are rebuilt whenever they change.
         const presetsPage = new Adw.PreferencesPage({title: _('Presets'), icon_name: 'document-save-symbolic'});
@@ -237,6 +242,130 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
             ids.forEach(id => settings.disconnect(id));
             return false;
         });
+    }
+
+    // The active keyboard layout as GTK sees it: key codes of a key name, and what a key
+    // code types (shortcuts bound by their place show the user's own characters).
+    _layout(keyboard) {
+        const display = Gdk.Display.get_default();
+        const group = keyboard?.active_layout_index ?? 0;
+        const resolve = name => {
+            const keyval = Gdk.keyval_from_name(name);
+            if (!keyval || keyval === Gdk.KEY_VoidSymbol)
+                return null;
+            const [found, keys] = display.map_keyval(keyval);
+            return found ? [...new Set(keys.filter(key => key.group === group).map(key => key.keycode))] : [];
+        };
+        const codeLabel = code => {
+            const [found, keys, keyvals] = display.map_keycode(code);
+            const index = found ? keys.findIndex(key => key.level === 0 && key.group === group) : -1;
+            return index < 0 ? null : keyNameLabel(Gdk.keyval_name(keyvals[index]));
+        };
+        return {resolve, codeLabel};
+    }
+
+    // Omarchy's navigation shortcuts, each with a switch. The keys are a label, so the
+    // switch stays at the right end of the row.
+    _shortcutsPage(settings) {
+        const page = new Adw.PreferencesPage({
+            title: _('Shortcuts'),
+            icon_name: 'preferences-desktop-keyboard-shortcuts-symbolic',
+        });
+        const keys = this.getSettings('org.gnome.shell.extensions.tiling-presets.keybindings');
+        const accelsOf = name => keys.get_strv(name);
+        const gnome = gnomeKeybindings(readJSON(settings, 'saved-gnome-settings'));
+        const summaryOf = (schema, key) => gnome.find(g => g.schema === schema && g.key === key)?.summary ?? key;
+
+        const intro = new Adw.PreferencesGroup({
+            description: _('Omarchy\'s navigation shortcuts that GNOME does not have on these keys. While one is on, ' +
+                'a GNOME shortcut on the same keys gives them up; it gets them back when you switch it off ' +
+                'or turn the extension off.'),
+        });
+        page.add(intro);
+
+        const switches = new Map();
+        const enabled = () => new Set(settings.get_strv('shortcuts'));
+        // The subtitle and keys of a row depend on the keyboard layout.
+        const describe = (row, {resolve, codeLabel}) => {
+            const lines = row.subtitle ? [_(row.subtitle)] : [];
+            const targets = Object.values(row.gnome ?? {});
+            if (targets.length)
+                lines.push(_('GNOME\'s own “%s”').format(summaryOf(...targets[0]).replace(/\s+\d+$/, '')));
+            // "Switch to application 1 … 9" is one GNOME shortcut to the reader.
+            const taken = [...new Set(takenBy(row, accelsOf, gnome, resolve).map(t => t.summary.replace(/\s+\d+$/, '')))];
+            if (taken.length) {
+                const names = taken.slice(0, 2).map(t => `“${t}”`).join(', ');
+                lines.push(taken.length > 2
+                    ? _('Instead of GNOME\'s %s and %d more').format(names, taken.length - 2)
+                    : _('Instead of GNOME\'s %s').format(names));
+            }
+            if (row.setting)
+                lines.push(_('Changes GNOME\'s own window setting'));
+            return {subtitle: lines.join('\n'), keys: rowKeysLabel(row, accelsOf, codeLabel)};
+        };
+        const shown = [];   // [row, action row, keys label]
+        for (const group of GROUPS) {
+            const prefsGroup = new Adw.PreferencesGroup({title: _(group.title), description: group.description ?? null});
+            for (const row of group.rows) {
+                const actionRow = new Adw.ActionRow({title: _(row.title), use_markup: false});
+                const keysLabel = new Gtk.Label({css_classes: ['dim-label'], valign: Gtk.Align.CENTER});
+                actionRow.add_suffix(keysLabel);
+                shown.push([row, actionRow, keysLabel]);
+                const toggle = new Gtk.Switch({valign: Gtk.Align.CENTER, active: enabled().has(row.id)});
+                toggle.connect('notify::active', () => {
+                    const ids = enabled();
+                    if (toggle.active === ids.has(row.id))
+                        return;
+                    if (toggle.active)
+                        ids.add(row.id);
+                    else
+                        ids.delete(row.id);
+                    settings.set_strv('shortcuts', [...ids]);
+                });
+                actionRow.add_suffix(toggle);
+                actionRow.activatable_widget = toggle;
+                switches.set(row.id, toggle);
+                prefsGroup.add(actionRow);
+            }
+            page.add(prefsGroup);
+        }
+        const id = settings.connect('changed::shortcuts', () => {
+            const ids = enabled();
+            for (const [rowId, toggle] of switches)
+                toggle.active = ids.has(rowId);
+        });
+
+        // GTK learns the real keyboard layout a moment after the window opens, and the user
+        // may switch layouts; both update the keys and what they take from GNOME.
+        const keyboard = Gdk.Display.get_default()?.get_default_seat()?.get_keyboard() ?? null;
+        const refresh = () => {
+            const layout = this._layout(keyboard);
+            for (const [row, actionRow, keysLabel] of shown) {
+                const {subtitle, keys: label} = describe(row, layout);
+                actionRow.subtitle = subtitle;
+                keysLabel.label = label;
+            }
+        };
+        refresh();
+        const keyboardIds = keyboard ? ['notify::layout-names', 'notify::active-layout-index']
+            .map(signal => keyboard.connect(signal, refresh)) : [];
+        page.connect('destroy', () => {
+            settings.disconnect(id);
+            keyboardIds.forEach(keyboardId => keyboard.disconnect(keyboardId));
+        });
+
+        const infoGroup = (title, description, rows) => {
+            const group = new Adw.PreferencesGroup({title, description});
+            for (const row of rows) {
+                const actionRow = new Adw.ActionRow({title: _(row.title), subtitle: row.reason ? _(row.reason) : '', use_markup: false});
+                actionRow.add_suffix(new Gtk.Label({label: row.keys, css_classes: ['dim-label'], valign: Gtk.Align.CENTER}));
+                group.add(actionRow);
+            }
+            return group;
+        };
+        page.add(infoGroup(_('Already in GNOME'), _('Nothing to switch on.'), ALREADY_IN_GNOME));
+        page.add(infoGroup(_('Not available in GNOME'), null, NOT_IN_GNOME));
+        return page;
     }
 
     _workspaceGroup(settings, names) {

@@ -311,6 +311,9 @@ export class AppPresets {
         if (window.get_workspace() !== workspace)
             window.change_workspace_by_index(index, true);
         this._tiler.setOrder(window, slot.seq);
+        // A window restored to its place is no longer on the scratchpad.
+        if (this._tiler.isScratch(window))
+            this._tiler.setScratch(window, false);
         // Floating (Always on Top) is part of the saved state, both ways.
         if (saved.above && !window.is_above())
             window.make_above();

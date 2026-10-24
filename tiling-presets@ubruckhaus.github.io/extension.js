@@ -6,6 +6,7 @@ import {HeaderDoubleClick} from './doubleClick.js';
 import {FocusBorder} from './focusBorder.js';
 import {GnomeOverrides} from './gnomeOverrides.js';
 import {Indicator} from './indicator.js';
+import {Shortcuts} from './shortcuts.js';
 import {Tiler} from './tiler.js';
 import {WorkspaceNumbers} from './workspaceNumbers.js';
 
@@ -36,6 +37,8 @@ export default class TilingPresetsExtension extends Extension {
                 `changed::show-${button}-button`, () => this._overrides.syncButtons())),
             this._settings.connect('changed::header-double-click', () => this._overrides.syncDoubleClick()),
         ];
+        this._shortcuts = new Shortcuts(this, this._settings, this._tiler, this._overrides, log);
+        this._shortcuts.enable();
 
         const start = () => {
             this._tiler.enable();
@@ -73,6 +76,8 @@ export default class TilingPresetsExtension extends Extension {
         }
         this._settings.disconnect(this._numbersId);
         this._overrideIds.forEach(id => this._settings.disconnect(id));
+        this._shortcuts.disable();
+        this._shortcuts = null;
         this._overrides.releaseAll();
         this._overrides.destroy();
         this._overrides = null;

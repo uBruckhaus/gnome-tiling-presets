@@ -101,9 +101,288 @@
       <default>"{}"</default>
       <summary>The user's own GNOME window settings while the extension overrides them</summary>
     </key>
+    <key name="shortcuts" type="as">
+      <default>[]</default>
+      <summary>Omarchy shortcuts that are switched on</summary>
+      <description>Ids from the Shortcuts page. Their keys are in the keybindings schema; GNOME shortcuts on the same keys are moved out of the way while they are on.</description>
+    </key>
     <key name="debug" type="b">
       <default>false</default>
       <summary>Write debug messages to the journal</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.shell.extensions.tiling-presets.keybindings" path="/org/gnome/shell/extensions/tiling-presets/keybindings/">
+    <key name="workspace-1" type="as">
+      <default>['&lt;Super&gt;0x0a']</default>
+      <summary>Switch to workspace 1</summary>
+    </key>
+    <key name="workspace-2" type="as">
+      <default>['&lt;Super&gt;0x0b']</default>
+      <summary>Switch to workspace 2</summary>
+    </key>
+    <key name="workspace-3" type="as">
+      <default>['&lt;Super&gt;0x0c']</default>
+      <summary>Switch to workspace 3</summary>
+    </key>
+    <key name="workspace-4" type="as">
+      <default>['&lt;Super&gt;0x0d']</default>
+      <summary>Switch to workspace 4</summary>
+    </key>
+    <key name="workspace-5" type="as">
+      <default>['&lt;Super&gt;0x0e']</default>
+      <summary>Switch to workspace 5</summary>
+    </key>
+    <key name="workspace-6" type="as">
+      <default>['&lt;Super&gt;0x0f']</default>
+      <summary>Switch to workspace 6</summary>
+    </key>
+    <key name="workspace-7" type="as">
+      <default>['&lt;Super&gt;0x10']</default>
+      <summary>Switch to workspace 7</summary>
+    </key>
+    <key name="workspace-8" type="as">
+      <default>['&lt;Super&gt;0x11']</default>
+      <summary>Switch to workspace 8</summary>
+    </key>
+    <key name="workspace-9" type="as">
+      <default>['&lt;Super&gt;0x12']</default>
+      <summary>Switch to workspace 9</summary>
+    </key>
+    <key name="workspace-10" type="as">
+      <default>['&lt;Super&gt;0x13']</default>
+      <summary>Switch to workspace 10</summary>
+    </key>
+    <key name="window-to-workspace-1" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x0a']</default>
+      <summary>Move the window to workspace 1 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-2" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x0b']</default>
+      <summary>Move the window to workspace 2 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-3" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x0c']</default>
+      <summary>Move the window to workspace 3 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-4" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x0d']</default>
+      <summary>Move the window to workspace 4 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-5" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x0e']</default>
+      <summary>Move the window to workspace 5 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-6" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x0f']</default>
+      <summary>Move the window to workspace 6 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-7" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x10']</default>
+      <summary>Move the window to workspace 7 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-8" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x11']</default>
+      <summary>Move the window to workspace 8 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-9" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x12']</default>
+      <summary>Move the window to workspace 9 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-10" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x13']</default>
+      <summary>Move the window to workspace 10 and follow it</summary>
+    </key>
+    <key name="window-to-workspace-silent-1" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x0a']</default>
+      <summary>Move the window to workspace 1 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-2" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x0b']</default>
+      <summary>Move the window to workspace 2 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-3" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x0c']</default>
+      <summary>Move the window to workspace 3 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-4" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x0d']</default>
+      <summary>Move the window to workspace 4 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-5" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x0e']</default>
+      <summary>Move the window to workspace 5 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-6" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x0f']</default>
+      <summary>Move the window to workspace 6 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-7" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x10']</default>
+      <summary>Move the window to workspace 7 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-8" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x11']</default>
+      <summary>Move the window to workspace 8 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-9" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x12']</default>
+      <summary>Move the window to workspace 9 and stay</summary>
+    </key>
+    <key name="window-to-workspace-silent-10" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x13']</default>
+      <summary>Move the window to workspace 10 and stay</summary>
+    </key>
+    <key name="workspace-next" type="as">
+      <default>['&lt;Super&gt;Tab']</default>
+      <summary>Next workspace (GNOME's own)</summary>
+    </key>
+    <key name="workspace-previous" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;Tab']</default>
+      <summary>Previous workspace (GNOME's own)</summary>
+    </key>
+    <key name="workspace-former" type="as">
+      <default>['&lt;Super&gt;&lt;Control&gt;Tab']</default>
+      <summary>The workspace used last</summary>
+    </key>
+    <key name="focus-left" type="as">
+      <default>['&lt;Super&gt;Left']</default>
+      <summary>Focus the window left</summary>
+    </key>
+    <key name="focus-right" type="as">
+      <default>['&lt;Super&gt;Right']</default>
+      <summary>Focus the window right</summary>
+    </key>
+    <key name="focus-up" type="as">
+      <default>['&lt;Super&gt;Up']</default>
+      <summary>Focus the window up</summary>
+    </key>
+    <key name="focus-down" type="as">
+      <default>['&lt;Super&gt;Down']</default>
+      <summary>Focus the window down</summary>
+    </key>
+    <key name="swap-left" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;Left']</default>
+      <summary>Swap the window left</summary>
+    </key>
+    <key name="swap-right" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;Right']</default>
+      <summary>Swap the window right</summary>
+    </key>
+    <key name="swap-up" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;Up']</default>
+      <summary>Swap the window up</summary>
+    </key>
+    <key name="swap-down" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;Down']</default>
+      <summary>Swap the window down</summary>
+    </key>
+    <key name="windows-next" type="as">
+      <default>['&lt;Alt&gt;Tab']</default>
+      <summary>Next window (GNOME's own)</summary>
+    </key>
+    <key name="windows-previous" type="as">
+      <default>['&lt;Shift&gt;&lt;Alt&gt;Tab']</default>
+      <summary>Previous window (GNOME's own)</summary>
+    </key>
+    <key name="close-window" type="as">
+      <default>['&lt;Super&gt;w', '&lt;Super&gt;q']</default>
+      <summary>Close the window (GNOME's own)</summary>
+    </key>
+    <key name="close-all" type="as">
+      <default>['&lt;Control&gt;&lt;Alt&gt;Delete']</default>
+      <summary>Close all windows</summary>
+    </key>
+    <key name="toggle-floating" type="as">
+      <default>['&lt;Super&gt;t']</default>
+      <summary>Float or tile the window</summary>
+    </key>
+    <key name="fullscreen" type="as">
+      <default>['&lt;Super&gt;f']</default>
+      <summary>Full screen (GNOME's own)</summary>
+    </key>
+    <key name="full-width" type="as">
+      <default>['&lt;Super&gt;&lt;Alt&gt;f']</default>
+      <summary>Maximize (GNOME's own)</summary>
+    </key>
+    <key name="pop-out" type="as">
+      <default>['&lt;Super&gt;o']</default>
+      <summary>Float the window and show it on all workspaces</summary>
+    </key>
+    <key name="toggle-split" type="as">
+      <default>['&lt;Super&gt;j']</default>
+      <summary>Switch between Side by side and Stacked</summary>
+    </key>
+    <key name="pseudo-tile" type="as">
+      <default>['&lt;Super&gt;p']</default>
+      <summary>Keep the window's own size inside its tile</summary>
+    </key>
+    <key name="cycle-layout" type="as">
+      <default>['&lt;Super&gt;l']</default>
+      <summary>Next layout of the workspace</summary>
+    </key>
+    <key name="cycle-layout-backward" type="as">
+      <default>['&lt;Super&gt;&lt;Alt&gt;l']</default>
+      <summary>Previous layout of the workspace</summary>
+    </key>
+    <key name="save-width" type="as">
+      <default>['&lt;Super&gt;&lt;Alt&gt;Home']</default>
+      <summary>Save the window's width</summary>
+    </key>
+    <key name="restore-width" type="as">
+      <default>['&lt;Super&gt;Home']</default>
+      <summary>Restore the saved width</summary>
+    </key>
+    <key name="lock-screen" type="as">
+      <default>['&lt;Super&gt;&lt;Control&gt;l']</default>
+      <summary>Lock the screen (GNOME's own)</summary>
+    </key>
+    <key name="resize-narrower" type="as">
+      <default>['&lt;Super&gt;0x14', '&lt;Super&gt;&lt;Alt&gt;0x14', '&lt;Super&gt;&lt;Control&gt;0x14']</default>
+      <summary>Make the window narrower: 100 px, with Alt 25 px, with Ctrl 300 px</summary>
+    </key>
+    <key name="resize-wider" type="as">
+      <default>['&lt;Super&gt;0x15', '&lt;Super&gt;&lt;Alt&gt;0x15', '&lt;Super&gt;&lt;Control&gt;0x15']</default>
+      <summary>Make the window wider: 100 px, with Alt 25 px, with Ctrl 300 px</summary>
+    </key>
+    <key name="resize-shorter" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x14', '&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x14', '&lt;Super&gt;&lt;Shift&gt;&lt;Control&gt;0x14']</default>
+      <summary>Make the window shorter: 100 px, with Alt 25 px, with Ctrl 300 px</summary>
+    </key>
+    <key name="resize-taller" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;0x15', '&lt;Super&gt;&lt;Shift&gt;&lt;Alt&gt;0x15', '&lt;Super&gt;&lt;Shift&gt;&lt;Control&gt;0x15']</default>
+      <summary>Make the window taller: 100 px, with Alt 25 px, with Ctrl 300 px</summary>
+    </key>
+    <key name="monitor-next" type="as">
+      <default>['&lt;Control&gt;&lt;Alt&gt;Tab']</default>
+      <summary>Focus the next monitor</summary>
+    </key>
+    <key name="monitor-previous" type="as">
+      <default>['&lt;Control&gt;&lt;Alt&gt;&lt;Shift&gt;Tab']</default>
+      <summary>Focus the previous monitor</summary>
+    </key>
+    <key name="window-to-monitor-left" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Control&gt;Left']</default>
+      <summary>Move the window to the monitor left (GNOME's own)</summary>
+    </key>
+    <key name="window-to-monitor-right" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Control&gt;Right']</default>
+      <summary>Move the window to the monitor right (GNOME's own)</summary>
+    </key>
+    <key name="window-to-monitor-up" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Control&gt;Up']</default>
+      <summary>Move the window to the monitor up (GNOME's own)</summary>
+    </key>
+    <key name="window-to-monitor-down" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;&lt;Control&gt;Down']</default>
+      <summary>Move the window to the monitor down (GNOME's own)</summary>
+    </key>
+    <key name="scratchpad" type="as">
+      <default>['&lt;Super&gt;s', '&lt;Super&gt;Above_Tab']</default>
+      <summary>Show or hide the scratchpad</summary>
+    </key>
+    <key name="to-scratchpad" type="as">
+      <default>['&lt;Super&gt;&lt;Alt&gt;s', '&lt;Super&gt;&lt;Shift&gt;Above_Tab']</default>
+      <summary>Move the window to the scratchpad or back</summary>
     </key>
   </schema>
 </schemalist>
