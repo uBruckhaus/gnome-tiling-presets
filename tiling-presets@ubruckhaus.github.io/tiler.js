@@ -10,6 +10,7 @@ import {presetFor} from './config.js';
 const RETILE_DELAY = 40;           // ms; collects bursts of window events into one pass
 const UNMAXIMIZE_SETTLE = 200;     // ms; Wayland clients apply an unmaximize asynchronously
 const READY_TIMEOUT = 500;         // ms; a new window counts as shown after this at the latest
+const SETTINGS_APP = 'org.gnome.Shell.Extensions';   // wm class of extension settings windows
 
 // Per-window choices that outlive disable/enable (the screen lock) like the windows
 // themselves: weak, so closed windows are not kept.
@@ -20,9 +21,10 @@ const kept = {
 };
 
 export class Tiler {
-    constructor(settings, log) {
+    constructor(settings, log, settingsTitle) {
         this._settings = settings;
         this._log = log;
+        this._settingsTitle = settingsTitle;   // title of this extension's settings window
         // Restoring an App Preset adopts new windows before overflow sees them.
         this.claimWindow = null;
         // Title bar double-clicks: sees maximize changes before the tiler reacts.
@@ -450,6 +452,11 @@ export class Tiler {
             `${this.whyNotTiled(window) || 'tileable'} (maximized ${window.get_maximize_flags()}, ` +
             `resizable ${window.allows_resize()})`);
         this._rememberSize(window);
+        // The settings float above the tiled windows, where GNOME centred them.
+        if (window.get_wm_class() === SETTINGS_APP && window.get_title() === this._settingsTitle) {
+            window.make_above();
+            return;
+        }
         if (this.claimWindow?.(window))
             return;
         if (!this.paused)

@@ -118,6 +118,8 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
             _('Space around and between tiled windows, in pixels'), 0, 48, 2));
         behaviour.add(switchRow(settings, 'follow-overflow', _('Follow moved windows'),
             _('Switch to the workspace a new window was moved to')));
+        behaviour.add(switchRow(settings, 'focus-follows-mouse', _('Focus follows the mouse'),
+            _('The window under the pointer becomes the active one, without a click. GNOME\'s own setting, given back when this is off.')));
         behaviour.add(switchRow(settings, 'header-double-click', _('Double-click on the title bar floats'),
             _('On tiled workspaces a double-click with the left button floats the window or tiles it again. Elsewhere it maximizes, as in GNOME.')));
         behaviour.add(choiceRow(settings, 'restore-conflicts', _('Other windows when restoring'),

@@ -17,7 +17,7 @@ export default class TilingPresetsExtension extends Extension {
             if (this._settings.get_boolean('debug'))
                 console.log(`[Tiling Presets] ${message}`);
         };
-        this._tiler = new Tiler(this._settings, log);
+        this._tiler = new Tiler(this._settings, log, this.metadata.name);
         this._appPresets = new AppPresets(this._settings, this._tiler, log);
         this._indicator = new Indicator(this, this._tiler, this._appPresets);
         Main.panel.addToStatusArea(this.uuid, this._indicator);
@@ -32,10 +32,12 @@ export default class TilingPresetsExtension extends Extension {
         this._overrides = new GnomeOverrides(this._settings);
         this._overrides.syncButtons();
         this._overrides.syncDoubleClick();
+        this._overrides.syncFocus();
         this._overrideIds = [
             ...['minimize', 'maximize', 'close'].map(button => this._settings.connect(
                 `changed::show-${button}-button`, () => this._overrides.syncButtons())),
             this._settings.connect('changed::header-double-click', () => this._overrides.syncDoubleClick()),
+            this._settings.connect('changed::focus-follows-mouse', () => this._overrides.syncFocus()),
         ];
         this._shortcuts = new Shortcuts(this, this._settings, this._tiler, this._overrides, log);
         this._shortcuts.enable();

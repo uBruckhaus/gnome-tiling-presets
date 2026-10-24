@@ -32,6 +32,7 @@ for (const row of ROWS) {
     check(`${row.id} has keys`, Boolean(row.keys) || rowKeysLabel(row, accelsOf).length > 0);
 }
 check('row ids unique', new Set(ROW_IDS).size === ROW_IDS.length);
+check('every shortcut on by default', JSON.stringify(defaults.get('shortcuts')) === JSON.stringify(ROW_IDS));
 const allAccels = ROWS.flatMap(row => (row.bindings ?? []).flatMap(accelsOf)).flatMap(a => accelIds(a));
 check('no two Omarchy shortcuts share keys', new Set(allAccels).size === allAccels.length);
 

@@ -1,10 +1,11 @@
-// Some options are GNOME's own settings (title bar buttons, title bar double-click, and
-// GNOME shortcuts on the keys of switched-on Omarchy shortcuts). They are set while the
-// extension runs; the user's own values are kept in `saved-gnome-settings` and put back
-// when an option is turned off or the extension is disabled (also when the screen locks;
-// unlocking sets them again). Kept on disk, so after a crash the next start still knows
-// the user's values. If the user changes one of these settings elsewhere while the
-// extension runs, that change is kept and becomes the value restored later.
+// Some options are GNOME's own settings (title bar buttons, title bar double-click, focus
+// follows the mouse, and GNOME shortcuts on the keys of switched-on Omarchy shortcuts).
+// They are set while the extension runs; the user's own values are kept in
+// `saved-gnome-settings` and put back when an option is turned off or the extension is
+// disabled (also when the screen locks; unlocking sets them again). Kept on disk, so
+// after a crash the next start still knows the user's values. If the user changes one
+// of these settings elsewhere while the extension runs, that change is kept and becomes
+// the value restored later.
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -127,6 +128,15 @@ export class GnomeOverrides {
         const left = this.original('button-layout').unpack().split(':')[0];
         const right = BUTTONS.filter(button => this._settings.get_boolean(`show-${button}-button`));
         this.set('button-layout', new GLib.Variant('s', `${left}:${right.join(',')}`));
+    }
+
+    // The window under the pointer gets the focus, as in Omarchy. "sloppy", not "mouse":
+    // the desktop under the pointer does not take the focus away.
+    syncFocus() {
+        if (this._settings.get_boolean('focus-follows-mouse'))
+            this.setOrRelease('focus-mode', new GLib.Variant('s', 'sloppy'));
+        else
+            this.release('focus-mode');
     }
 
     // Title bar double-clicks become a vertical maximize, which doubleClick.js recognises.

@@ -16,9 +16,12 @@ counterpart of the Omarchy plugin *Workspace Presets*.
 
 - **Windows:** a border in GNOME's accent colour around the active window (thickness and
   corner radius adjustable), minimize/maximize/close buttons in title bars, and a
-  double-click on a title bar floats a tiled window or tiles it again.
+  double-click on a title bar floats a tiled window or tiles it again. The window
+  under the mouse pointer becomes the active one, without a click (GNOME's own
+  "focus follows mouse", given back when switched off).
+  The extension's settings window floats on top, centred, instead of being tiled.
 - **Shortcuts:** Omarchy's navigation shortcuts that GNOME lacks, each with its own
-  switch (all off at first): workspaces 1–10 by number, focus and swap by direction,
+  switch (all on at first): workspaces 1–10 by number, focus and swap by direction,
   floating, pop-out, pseudo-tiling, layout cycling, keyboard resizing, monitors and a
   scratchpad. They work with any keyboard layout: like Omarchy, keys that differ
   between layouts are bound by their place (the digit row, the two keys right of 0,
@@ -118,6 +121,9 @@ gnome-extensions enable tiling-presets@ubruckhaus.github.io
   `menu` takes `LAYOUT` too), `former` (Super + Ctrl + Tab after GNOME removed a
   workspace and renumbered the rest).
   `ptyxis` (apps that open maximized, like Ptyxis with a restored large size).
+  `prefs` (the settings window floats above a full tiled workspace).
+  `focus` (focus follows the mouse between two tiled windows; GNOME's focus mode
+  given back when the option or the extension is switched off).
   Screenshots go to `dist/screenshots/`.
   `FIXED=1` runs any scenario with GNOME's fixed workspaces instead of dynamic ones.
 - `gsettings set org.gnome.shell.extensions.tiling-presets debug true` writes the
