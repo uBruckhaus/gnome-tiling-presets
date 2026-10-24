@@ -6,5 +6,5 @@
   "url": "https://github.com/uBruckhaus/gnome-tiling-presets",
   "settings-schema": "org.gnome.shell.extensions.tiling-presets",
   "gettext-domain": "tiling-presets",
-  "version-name": "0.1.0"
+  "version-name": "0.2.0"
 }
