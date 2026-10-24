@@ -1,12 +1,10 @@
-// A coloured border around the focused window.
+// A border in GNOME's accent colour around the focused window.
 
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 
 const SWITCH_HIDE = 300;  // ms; hidden while a workspace switch animates
-const COLOR = /^(#[0-9a-fA-F]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/;
-const DEFAULT_COLOR = '#3584e4';
 const BORDERED_TYPES = [Meta.WindowType.NORMAL, Meta.WindowType.DIALOG, Meta.WindowType.MODAL_DIALOG];
 
 export class FocusBorder {
@@ -75,10 +73,7 @@ export class FocusBorder {
     _style() {
         const width = this._settings.get_int('focus-border-width');
         const radius = this._settings.get_int('focus-border-radius');
-        let color = this._settings.get_string('focus-border-color');
-        if (!COLOR.test(color))
-            color = DEFAULT_COLOR;
-        this._border.style = `border: ${width}px solid ${color}; border-radius: ${radius ? radius + width : 0}px;`;
+        this._border.style = `border-width: ${width}px; border-radius: ${radius ? radius + width : 0}px;`;
     }
 
     _hideForSwitch() {

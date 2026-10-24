@@ -101,3 +101,7 @@
 .tp-ws-empty .tp-ws-pill {
   color: rgba(255, 255, 255, 0.45);
 }
+
+.tp-focus-border {
+  border-color: -st-accent-color;
+}

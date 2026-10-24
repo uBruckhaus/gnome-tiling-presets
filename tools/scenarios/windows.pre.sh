@@ -8,6 +8,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
+import St from 'gi://St';
 const _origEnable = TilingPresetsExtension.prototype.enable;
 TilingPresetsExtension.prototype.enable = function () {
     _origEnable.call(this);
@@ -23,7 +24,7 @@ TilingPresetsExtension.prototype.enable = function () {
         new Shell.Screenshot().screenshot(false, stream, (s, r) => { s.screenshot_finish(r); stream.close(null); });
     };
     const calc = () => global.display.list_all_windows().find(w => w.get_wm_class()?.includes('Calculator'));
-    const state = () => { const w = calc(); const f = w?.get_frame_rect(); return `calc above=${w?.is_above()} max=${w?.get_maximize_flags()} frame=${f?.x},${f?.y} ${f?.width}x${f?.height} focus=${global.display.focus_window?.get_title()} border=${this._focusBorder._border.visible} ${this._focusBorder._border.x},${this._focusBorder._border.y} ${this._focusBorder._border.width}x${this._focusBorder._border.height}`; };
+    const state = () => { const w = calc(); const f = w?.get_frame_rect(); return `calc above=${w?.is_above()} max=${w?.get_maximize_flags()} frame=${f?.x},${f?.y} ${f?.width}x${f?.height} focus=${global.display.focus_window?.get_title()} border=${this._focusBorder._border.visible} ${this._focusBorder._border.x},${this._focusBorder._border.y} ${this._focusBorder._border.width}x${this._focusBorder._border.height} colour=${this._focusBorder._border.get_theme_node().get_border_color(St.Side.TOP).to_string()}`; };
     const at = (ms, fn) => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => { try { fn(); } catch (e) { log(`error ${e}\n${e.stack}`); } return false; });
     const dbl = (ms, getPoint) => {
         at(ms, () => { const [x, y] = getPoint(); this._pt = [x, y]; ptr.notify_absolute_motion(now(), x, y); });
@@ -40,6 +41,9 @@ TilingPresetsExtension.prototype.enable = function () {
     at(11000, () => { log(`overview before hide: visible=${Main.overview.visible} shown=${Main.overview._shown} visibleTarget=${Main.overview._visibleTarget}`); Main.overview.hide(); });
     at(11800, () => log(`overview after hide: visible=${Main.overview.visible}`));
     at(12000, () => { log(`tiled: ${state()}`); shot('windows-tiled'); });
+    // The border follows GNOME's accent colour.
+    at(12200, () => new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).set_string('accent-color', 'green'));
+    at(12400, () => log(`accent green: ${state()}`));
     dbl(12500, header);
     at(14500, () => { log(`after double-click: ${state()}`); shot('windows-floating'); });
     dbl(15000, header);

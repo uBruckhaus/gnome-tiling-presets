@@ -14,7 +14,7 @@ counterpart of the Omarchy plugin *Workspace Presets*.
   (adjustable), more appear when those workspaces are in use. The active one is
   highlighted, empty ones are dimmed; click a number to switch, scroll to move along.
 
-- **Windows:** a coloured border around the active window (colour, thickness and
+- **Windows:** a border in GNOME's accent colour around the active window (thickness and
   corner radius adjustable), minimize/maximize/close buttons in title bars, and a
   double-click on a title bar floats a tiled window or tiles it again.
 - **Shortcuts:** Omarchy's navigation shortcuts that GNOME lacks, each with its own

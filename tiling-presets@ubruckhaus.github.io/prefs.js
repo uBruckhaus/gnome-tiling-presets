@@ -82,30 +82,6 @@ function spinRow(settings, key, title, subtitle, lower, upper, step = 1) {
     return row;
 }
 
-function colorRow(settings, key, title) {
-    const row = new Adw.ActionRow({title});
-    const button = new Gtk.ColorDialogButton({
-        dialog: new Gtk.ColorDialog({with_alpha: true}),
-        valign: Gtk.Align.CENTER,
-    });
-    const sync = () => {
-        const rgba = new Gdk.RGBA();
-        if (rgba.parse(settings.get_string(key)) && !rgba.equal(button.rgba))
-            button.rgba = rgba;
-    };
-    sync();
-    button.connect('notify::rgba', () => {
-        const value = button.rgba.to_string();
-        if (value !== settings.get_string(key))
-            settings.set_string(key, value);
-    });
-    const id = settings.connect(`changed::${key}`, sync);
-    button.connect('destroy', () => settings.disconnect(id));
-    row.add_suffix(button);
-    row.activatable_widget = button;
-    return row;
-}
-
 export default class TilingPresetsPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
@@ -156,12 +132,11 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
 
         const border = new Adw.PreferencesGroup({
             title: _('Active window border'),
-            description: _('A coloured border around the window that has the focus. Not shown on maximized and fullscreen windows.'),
+            description: _('A border in GNOME\'s accent colour around the window that has the focus. Not shown on maximized and fullscreen windows.'),
         });
         const showBorder = switchRow(settings, 'focus-border', _('Show a border'));
         border.add(showBorder);
         const borderRows = [
-            colorRow(settings, 'focus-border-color', _('Colour')),
             spinRow(settings, 'focus-border-width', _('Thickness'), _('In pixels'), 1, 12),
             spinRow(settings, 'focus-border-radius', _('Corner radius'),
                 _('In pixels; 12 matches GNOME\'s rounded windows, 0 is square'), 0, 24),
