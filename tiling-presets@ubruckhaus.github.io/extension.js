@@ -18,7 +18,7 @@ export default class TilingPresetsExtension extends Extension {
             if (this._settings.get_boolean('debug'))
                 console.log(`[Tiling Presets] ${message}`);
         };
-        this._tiler = new Tiler(this._settings, log, this.metadata.name);
+        this._tiler = new Tiler(this._settings, log);
         this._pins = new WorkspacePins(this._settings);
         this._pins.enable();
         this._appPresets = new AppPresets(this._settings, this._tiler, this._pins, log);

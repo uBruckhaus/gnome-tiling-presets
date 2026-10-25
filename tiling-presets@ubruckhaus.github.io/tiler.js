@@ -23,10 +23,9 @@ function shellId() {
 }
 
 export class Tiler {
-    constructor(settings, log, settingsTitle) {
+    constructor(settings, log) {
         this._settings = settings;
         this._log = log;
-        this._settingsTitle = settingsTitle;   // title of this extension's settings window
         // Restoring an App Preset adopts new windows before overflow sees them.
         this.claimWindow = null;
         // Title bar double-clicks: sees maximize changes before the tiler reacts.
@@ -485,9 +484,11 @@ export class Tiler {
             `${this.whyNotTiled(window) || 'tileable'} (maximized ${window.get_maximize_flags()}, ` +
             `resizable ${window.allows_resize()})`);
         this._rememberSize(window);
-        // The settings float above the tiled windows, where GNOME centred them.
-        if (window.get_wm_class() === SETTINGS_APP && window.get_title() === this._settingsTitle) {
+        // Extension settings float above the tiled windows, where GNOME centred them. Opened
+        // from a panel menu they get no focus and would stay behind a maximized window.
+        if (window.get_wm_class() === SETTINGS_APP) {
             window.make_above();
+            window.activate(global.get_current_time());
             return;
         }
         if (this.claimWindow?.(window))
