@@ -298,11 +298,10 @@ export class Shortcuts {
         const target = this._target(index, true);
         if (target < 0 || target === window.get_workspace()?.index())
             return;
-        window.change_workspace_by_index(target, true);
-        if (follow) {
-            global.workspace_manager.get_workspace_by_index(target)
-                ?.activate_with_focus(window, global.get_current_time());
-        }
+        if (follow)
+            this._tiler.moveAndFollow(window, target);
+        else
+            window.change_workspace_by_index(target, true);
     }
 
     _setScroll(on) {

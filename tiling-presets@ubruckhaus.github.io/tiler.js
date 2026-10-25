@@ -3,6 +3,7 @@
 
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {computeLayout, slotAt, clampRatio, isTilingLayout, MASTER_LAYOUTS} from './layouts.js';
 import {presetFor} from './config.js';
@@ -479,11 +480,22 @@ export class Tiler {
             return;
         }
         this._log(`overflow: "${window.get_title()}" from workspace ${index + 1} to ${target + 1}`);
-        window.change_workspace_by_index(target, true);
-        if (this._settings.get_boolean('follow-overflow')) {
-            global.workspace_manager.get_workspace_by_index(target)
-                ?.activate_with_focus(window, global.get_current_time());
-        }
+        if (this._settings.get_boolean('follow-overflow'))
+            this.moveAndFollow(window, target);
+        else
+            window.change_workspace_by_index(target, true);
+    }
+
+    // Moves the window and switches with it, the way GNOME's own shortcut does: the window
+    // stays pinned while the workspaces slide, and the mouse mode is cleared, so focus
+    // follows the mouse cannot focus a window passing under the pointer and switch back.
+    moveAndFollow(window, index) {
+        const manager = global.workspace_manager;
+        if (index >= manager.n_workspaces)
+            manager.append_new_workspace(false, global.get_current_time());
+        const workspace = manager.get_workspace_by_index(index);
+        if (workspace)
+            Main.wm.actionMoveWindow(window, workspace);
     }
 
     // --- Arranging ------------------------------------------------------------------
