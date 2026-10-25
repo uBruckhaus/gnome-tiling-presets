@@ -256,7 +256,7 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
                 _('Click a number in the top bar to switch workspaces, or scroll over the numbers to move along.')],
             [_('Shortcuts'),
                 _('Omarchy\'s navigation shortcuts for workspaces, focus, moving, floating and resizing. The Shortcuts ' +
-                    'page lists each one with your keyboard layout\'s keys and a switch.')],
+                    'page lists each one with your keyboard layout\'s keys; switch on the ones you want (all are off at first).')],
         ]) {
             const row = new Adw.ActionRow({title, subtitle: text, subtitle_lines: 0});
             row.add_css_class('property');

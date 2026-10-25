@@ -21,13 +21,13 @@ counterpart of the Omarchy plugin *Workspace Presets*.
   "focus follows mouse", given back when switched off).
   The extension's settings window floats on top, centred, instead of being tiled.
 - **Shortcuts:** Omarchy's navigation shortcuts that GNOME lacks, each with its own
-  switch (all on at first): workspaces 1–10 by number, focus and swap by direction,
+  switch (all off at first, so GNOME's own shortcuts are untouched until you switch one on): workspaces 1–10 by number, focus and swap by direction,
   floating, pop-out, pseudo-tiling, layout cycling, keyboard resizing, monitors and a
   scratchpad. They work with any keyboard layout: like Omarchy, keys that differ
   between layouts are bound by their place (the digit row, the two keys right of 0,
   the key left of 1), and the Shortcuts page shows them with your layout's characters.
 
-Everything is optional in Settings and on by default. Requires GNOME Shell 51.
+Everything is optional in Settings; everything but the shortcuts is on by default. Requires GNOME Shell 51.
 
 ## Using it
 

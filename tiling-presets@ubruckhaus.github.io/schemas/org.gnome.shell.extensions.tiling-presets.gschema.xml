@@ -103,8 +103,8 @@
       <summary>The user's own GNOME window settings while the extension overrides them</summary>
     </key>
     <key name="shortcuts" type="as">
-      <default>['workspace-switch', 'workspace-move', 'workspace-move-silent', 'workspace-next', 'workspace-former', 'workspace-scroll', 'focus', 'swap', 'windows-next', 'resize-drag', 'close', 'close-all', 'toggle-floating', 'fullscreen', 'full-width', 'pop-out', 'toggle-split', 'pseudo-tile', 'cycle-layout', 'lock-screen', 'width', 'resize-width', 'resize-height', 'monitor-focus', 'monitor-move', 'scratchpad', 'to-scratchpad']</default>
-      <summary>Omarchy shortcuts that are switched on</summary>
+      <default>[]</default>
+      <summary>Omarchy shortcuts that are switched on (none at first: GNOME's own shortcuts stay as they are until you switch one on)</summary>
       <description>Ids from the Shortcuts page. Their keys are in the keybindings schema; GNOME shortcuts on the same keys are moved out of the way while they are on.</description>
     </key>
     <key name="debug" type="b">
