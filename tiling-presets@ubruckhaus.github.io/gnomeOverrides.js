@@ -14,6 +14,20 @@ import {readJSON, writeJSON} from './config.js';
 import {WM_PREFS, savedId, splitSavedId} from './keys.js';
 
 const BUTTONS = ['minimize', 'maximize', 'close'];
+// In saved-gnome-settings: ids of keys that had no value of the user's own (GNOME's
+// default); they are reset when released, so later default changes still apply.
+const UNSET = '@unset';
+
+function unsetIds(saved) {
+    return new Set(Array.isArray(saved[UNSET]) ? saved[UNSET] : []);
+}
+
+function setUnset(saved, ids) {
+    if (ids.size)
+        saved[UNSET] = [...ids];
+    else
+        delete saved[UNSET];
+}
 
 export class GnomeOverrides {
     constructor(settings) {
@@ -52,6 +66,9 @@ export class GnomeOverrides {
         const saved = readJSON(this._settings, 'saved-gnome-settings');
         if (id in saved) {
             delete saved[id];
+            const unset = unsetIds(saved);
+            unset.delete(id);
+            setUnset(saved, unset);
             writeJSON(this._settings, 'saved-gnome-settings', saved);
         }
         this._written.delete(id);
@@ -81,6 +98,8 @@ export class GnomeOverrides {
         const saved = readJSON(this._settings, 'saved-gnome-settings');
         if (!(id in saved)) {
             saved[id] = gnome.get_value(key).print(true);
+            if (gnome.get_user_value(key) === null)
+                setUnset(saved, unsetIds(saved).add(id));
             writeJSON(this._settings, 'saved-gnome-settings', saved);
         }
         this._written.set(id, value);
@@ -95,14 +114,20 @@ export class GnomeOverrides {
         if (!(id in saved))
             return;
         const gnome = this._gnome(schema);
+        const unset = unsetIds(saved);
         if (gnome) {
             try {
-                gnome.set_value(key, GLib.Variant.parse(null, saved[id], null, null));
+                if (unset.has(id))
+                    gnome.reset(key);
+                else
+                    gnome.set_value(key, GLib.Variant.parse(null, saved[id], null, null));
             } catch {
                 gnome.reset(key);
             }
         }
         delete saved[id];
+        unset.delete(id);
+        setUnset(saved, unset);
         writeJSON(this._settings, 'saved-gnome-settings', saved);
     }
 
@@ -116,7 +141,7 @@ export class GnomeOverrides {
     }
 
     releaseAll() {
-        for (const id of Object.keys(readJSON(this._settings, 'saved-gnome-settings'))) {
+        for (const id of Object.keys(readJSON(this._settings, 'saved-gnome-settings')).filter(i => i !== UNSET)) {
             const [schema, key] = splitSavedId(id);
             this.release(key, schema);
         }

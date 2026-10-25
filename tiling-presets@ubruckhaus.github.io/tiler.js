@@ -1,25 +1,26 @@
 // Watches windows, keeps each workspace within its window limit and arranges
 // its windows in the workspace's layout.
 
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {computeLayout, slotAt, clampRatio, isTilingLayout, MASTER_LAYOUTS} from './layouts.js';
-import {presetFor} from './config.js';
+import {presetFor, readJSON, writeJSON} from './config.js';
 
 const RETILE_DELAY = 40;           // ms; collects bursts of window events into one pass
 const UNMAXIMIZE_SETTLE = 200;     // ms; Wayland clients apply an unmaximize asynchronously
 const READY_TIMEOUT = 500;         // ms; a new window counts as shown after this at the latest
 const SETTINGS_APP = 'org.gnome.Shell.Extensions';   // wm class of extension settings windows
 
-// Per-window choices that outlive disable/enable (the screen lock) like the windows
-// themselves: weak, so closed windows are not kept.
-const kept = {
-    natural: new WeakMap(),   // window -> size it opened with (for pseudo-tiling)
-    pseudo: new WeakSet(),    // windows keeping their own size inside their tile
-    scratch: new WeakSet(),   // windows on the scratchpad
-};
+// Per-window choices (opening size, pseudo-tiling, scratchpad) outlive disable/enable, as
+// the screen lock does it, in the `window-state` setting: keyed by the windows' stable
+// sequence numbers, which are unique only within one shell, so the shell's process id
+// is kept with them.
+function shellId() {
+    return new Gio.Credentials().get_unix_pid();
+}
 
 export class Tiler {
     constructor(settings, log, settingsTitle) {
@@ -40,9 +41,9 @@ export class Tiler {
         this._opening = new WeakSet(); // new windows not shown yet; they join layouts when ready
         this._ratios = new WeakMap();  // workspace -> master share
         this._floatRects = new WeakMap(); // window -> where it floated last
-        this._natural = kept.natural;
-        this._pseudo = kept.pseudo;
-        this._scratch = new Set();     // windows on the scratchpad, never tiled; see kept.scratch
+        this._natural = new WeakMap(); // window -> size it opened with (for pseudo-tiling)
+        this._pseudo = new WeakSet();  // windows keeping their own size inside their tile
+        this._scratch = new Set();     // windows on the scratchpad, never tiled
         this._dirty = new Set();
         this._timeouts = new Set();
         this._retileId = 0;
@@ -73,11 +74,8 @@ export class Tiler {
         const rank = new Map(windows.map(window => [window, this._currentSlot(window)]));
         windows.sort((a, b) => rank.get(a) - rank.get(b));
         windows.forEach(window => this._track(window));
-        for (const window of windows) {
-            this._rememberSize(window);
-            if (kept.scratch.has(window))
-                this._scratch.add(window);
-        }
+        this._loadWindowState(windows);
+        windows.forEach(window => this._rememberSize(window));
         this._readRatios();
         if (this._settings.get_boolean('debug')) {
             for (const window of windows) {
@@ -125,6 +123,7 @@ export class Tiler {
     }
 
     disable() {
+        this._saveWindowState();
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
@@ -139,8 +138,43 @@ export class Tiler {
         this._dirty.clear();
         this._order.clear();
         this._scratch.clear();
+        this._natural = new WeakMap();
+        this._pseudo = new WeakSet();
         this._grab = null;
         this.claimWindow = null;
+    }
+
+    _saveWindowState() {
+        const windows = {};
+        for (const window of this._tracked.keys()) {
+            const state = {
+                natural: this._natural.get(window),
+                pseudo: this._pseudo.has(window) || undefined,
+                scratch: this._scratch.has(window) || undefined,
+            };
+            if (state.natural || state.pseudo || state.scratch)
+                windows[window.get_stable_sequence()] = state;
+        }
+        writeJSON(this._settings, 'window-state', {shell: shellId(), windows});
+    }
+
+    _loadWindowState(windows) {
+        const saved = readJSON(this._settings, 'window-state');
+        if (Object.keys(saved).length)
+            writeJSON(this._settings, 'window-state', {});
+        if (saved.shell !== shellId())
+            return;
+        for (const window of windows) {
+            const state = saved.windows?.[window.get_stable_sequence()];
+            if (!state)
+                continue;
+            if (Number.isFinite(state.natural?.width) && Number.isFinite(state.natural?.height))
+                this._natural.set(window, {width: state.natural.width, height: state.natural.height});
+            if (state.pseudo)
+                this._pseudo.add(window);
+            if (state.scratch)
+                this._scratch.add(window);
+        }
     }
 
     // --- Public helpers for App Presets and the menu -------------------------------
@@ -323,10 +357,8 @@ export class Tiler {
     setScratch(window, on) {
         if (on) {
             this._scratch.add(window);
-            kept.scratch.add(window);
         } else {
             this._scratch.delete(window);
-            kept.scratch.delete(window);
         }
         this._queueFor(window);
     }

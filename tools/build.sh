@@ -9,5 +9,5 @@ gnome-extensions pack "$UUID" --force --out-dir dist \
     --extra-source=appPresets.js --extra-source=indicator.js --extra-source=workspaceNumbers.js --extra-source=workspacePins.js \
     --extra-source=focusBorder.js --extra-source=doubleClick.js --extra-source=gnomeOverrides.js \
     --extra-source=keys.js --extra-source=shortcuts.js \
-    --extra-source=icons
+    --extra-source=icons --extra-source=../LICENSE
 echo "dist/$UUID.shell-extension.zip"

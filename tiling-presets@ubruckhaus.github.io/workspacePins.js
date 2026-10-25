@@ -2,6 +2,9 @@
 // workspace but the last and renumbers the rest, so a window moved to workspace 5 ends up
 // on 2. GNOME's keep-alive pins the workspaces up to the highest one in use (or active,
 // or always shown in the top bar); only the empty ones after them are removed.
+// Others ask for a hold instead of calling GNOME's keep-alive themselves (it keeps one
+// timer per workspace, so a short hold would replace a pin): restoring an App Preset
+// holds the workspaces up to its own while its apps start.
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -21,7 +24,32 @@ export class WorkspacePins {
     constructor(settings) {
         this._settings = settings;
         this._pinned = new Set();
+        this._holds = new Map();   // workspace -> end of its hold (monotonic ms)
+        this._holdId = 0;
         this._workspaceSignals = [];
+    }
+
+    // Keeps `workspaces` for `duration` ms even if empty.
+    hold(workspaces, duration) {
+        const until = GLib.get_monotonic_time() / 1000 + duration;
+        for (const workspace of workspaces)
+            this._holds.set(workspace, Math.max(this._holds.get(workspace) ?? 0, until));
+        this._update();
+    }
+
+    // Looks again when the next hold ends.
+    _scheduleHolds() {
+        if (this._holdId)
+            GLib.source_remove(this._holdId);
+        this._holdId = 0;
+        if (!this._holds.size)
+            return;
+        const next = Math.min(...this._holds.values()) - GLib.get_monotonic_time() / 1000;
+        this._holdId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, Math.max(0, Math.ceil(next)), () => {
+            this._holdId = 0;
+            this._update();
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     enable() {
@@ -42,6 +70,10 @@ export class WorkspacePins {
         this._mutter.disconnect(this._mutterId);
         this._mutter = null;
         this._unwatchWorkspaces();
+        if (this._holdId)
+            GLib.source_remove(this._holdId);
+        this._holdId = 0;
+        this._holds.clear();
         for (const workspace of this._pinned)
             this._release(workspace);
         this._pinned.clear();
@@ -99,6 +131,15 @@ export class WorkspacePins {
             for (let i = 0; i < Math.min(count, manager.n_workspaces); i++)
                 pinned.add(manager.get_workspace_by_index(i));
         }
+        const now = GLib.get_monotonic_time() / 1000;
+        const present = new Set(Array.from({length: manager.n_workspaces}, (_, i) => manager.get_workspace_by_index(i)));
+        for (const [workspace, until] of this._holds) {
+            if (until <= now || !present.has(workspace))
+                this._holds.delete(workspace);
+            else
+                pinned.add(workspace);
+        }
+        this._scheduleHolds();
         for (const workspace of this._pinned) {
             if (!pinned.has(workspace))
                 this._release(workspace);

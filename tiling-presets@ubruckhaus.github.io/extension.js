@@ -19,14 +19,14 @@ export default class TilingPresetsExtension extends Extension {
                 console.log(`[Tiling Presets] ${message}`);
         };
         this._tiler = new Tiler(this._settings, log, this.metadata.name);
-        this._appPresets = new AppPresets(this._settings, this._tiler, log);
+        this._pins = new WorkspacePins(this._settings);
+        this._pins.enable();
+        this._appPresets = new AppPresets(this._settings, this._tiler, this._pins, log);
         this._indicator = new Indicator(this, this._tiler, this._appPresets);
         Main.panel.addToStatusArea(this.uuid, this._indicator);
         this._numbersId = this._settings.connect('changed::show-workspace-numbers',
             () => this._syncNumbers());
         this._syncNumbers();
-        this._pins = new WorkspacePins(this._settings);
-        this._pins.enable();
 
         this._focusBorder = new FocusBorder(this._settings);
         this._focusBorder.enable();

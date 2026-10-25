@@ -28,9 +28,10 @@ function restorableApp(app) {
 }
 
 export class AppPresets {
-    constructor(settings, tiler, log) {
+    constructor(settings, tiler, pins, log) {
         this._settings = settings;
         this._tiler = tiler;
+        this._pins = pins;   // WorkspacePins: keeps workspaces while a restore runs
         this._log = log;
         this._tracker = Shell.WindowTracker.get_default();
         this._appSystem = Shell.AppSystem.get_default();
@@ -41,6 +42,8 @@ export class AppPresets {
     }
 
     destroy() {
+        this._cancellable?.cancel();
+        this._cancellable = null;
         for (const id of this._timeouts)
             GLib.source_remove(id);
         this._timeouts.clear();
@@ -152,13 +155,18 @@ export class AppPresets {
             return this._next();
 
         const manager = global.workspace_manager;
+        if (index >= manager.n_workspaces && !Meta.prefs_get_dynamic_workspaces()) {
+            // A fixed number of workspaces is the user's choice: not raised for a restore.
+            Main.notify(_('App Preset not restored'),
+                _('Workspace %d does not exist: GNOME is set to %d workspaces.').format(number, manager.n_workspaces));
+            return this._next();
+        }
         while (manager.n_workspaces <= index)
             manager.append_new_workspace(false, global.get_current_time());
         const workspace = manager.get_workspace_by_index(index);
         // Dynamic workspaces would remove the empty ones (and renumber) while apps start.
         const duration = data.windows.length * LAUNCH_SPACING + (RESTORE_TIMEOUT + 2) * 1000;
-        for (let i = 0; i <= index; i++)
-            Main.wm.keepWorkspaceAlive(manager.get_workspace_by_index(i), duration);
+        this._pins.hold(Array.from({length: index + 1}, (_, i) => manager.get_workspace_by_index(i)), duration);
         // The layout saved with the App Preset is part of it, even if it came from the default.
         const current = presetFor(this._settings, number);
         if (data.ownPreset || current.layout !== data.layout || current.limit !== data.limit)
@@ -255,20 +263,29 @@ export class AppPresets {
         const marker = Gio.File.new_for_path(
             GLib.build_filenamev([GLib.get_user_runtime_dir(), 'tiling-presets-login']));
         const stamp = String(new Gio.Credentials().get_unix_pid());
-        try {
-            const [, contents] = marker.load_contents(null);
-            if (new TextDecoder().decode(contents) === stamp)
-                return;
-        } catch {}
-        // The marker is written when the restore starts, so a disable before then does not skip it.
-        this._later(LOGIN_DELAY * 1000, () => {
+        const cancellable = this._cancellable = new Gio.Cancellable();
+        marker.load_contents_async(cancellable, (file, result) => {
             try {
-                marker.replace_contents(new TextEncoder().encode(stamp), null, false,
-                    Gio.FileCreateFlags.PRIVATE | Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+                const [, contents] = file.load_contents_finish(result);
+                if (new TextDecoder().decode(contents) === stamp)
+                    return;
             } catch (e) {
-                this._log(`cannot write ${marker.get_path()}: ${e.message}`);
+                if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    return;
             }
-            this.restoreAll(true);
+            // The marker is written when the restore starts, so a disable before then does not skip it.
+            this._later(LOGIN_DELAY * 1000, () => {
+                marker.replace_contents_bytes_async(new GLib.Bytes(new TextEncoder().encode(stamp)), null, false,
+                    Gio.FileCreateFlags.PRIVATE | Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable, (f, r) => {
+                        try {
+                            f.replace_contents_finish(r);
+                        } catch (e) {
+                            if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                                this._log(`cannot write ${f.get_path()}: ${e.message}`);
+                        }
+                    });
+                this.restoreAll(true);
+            });
         });
     }
 

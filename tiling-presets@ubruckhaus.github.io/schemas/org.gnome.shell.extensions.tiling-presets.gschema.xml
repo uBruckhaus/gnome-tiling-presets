@@ -98,6 +98,11 @@
       <summary>The window under the mouse pointer becomes the active one</summary>
       <description>GNOME's own focus mode "sloppy": no click needed; moving the pointer to the desktop keeps the focus where it was.</description>
     </key>
+    <key name="window-state" type="s">
+      <default>"{}"</default>
+      <summary>Per-window choices kept while the extension is off for the screen lock</summary>
+      <description>Opening sizes, pseudo-tiling and scratchpad of open windows, by stable sequence number, for one shell process only. Read and cleared when the extension starts.</description>
+    </key>
     <key name="saved-gnome-settings" type="s">
       <default>"{}"</default>
       <summary>The user's own GNOME window settings while the extension overrides them</summary>
