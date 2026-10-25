@@ -1,7 +1,6 @@
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
-import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences, gettext as _, ngettext} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -173,20 +172,20 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
         numbers.add(minimum);
         workspacesPage.add(numbers);
 
-        // GNOME's own workspace settings (also in Settings → Multitasking): with dynamic
-        // workspaces GNOME removes empty ones and renumbers the rest.
+        // GNOME's own workspace settings, bound to the same keys as Settings → Multitasking,
+        // so either place shows the other's change. The number only counts when fixed.
         const gnome = new Adw.PreferencesGroup({
             title: _('GNOME workspaces'),
-            description: _('GNOME\'s own settings, also in Settings → Multitasking. With a fixed number, empty workspaces stay, so numbers keep their place.'),
+            description: _('GNOME\'s own settings, the same as in Settings → Multitasking. Dynamic workspaces come and go as needed; the extension keeps their numbers in place. Off: a fixed number of workspaces.'),
         });
         const mutter = new Gio.Settings({schema_id: 'org.gnome.mutter'});
         const wm = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
         window._gnomeSettings = [mutter, wm];
-        const fixed = new Adw.SwitchRow({title: _('Fixed number of workspaces')});
-        mutter.bind('dynamic-workspaces', fixed, 'active', Gio.SettingsBindFlags.INVERT_BOOLEAN);
-        gnome.add(fixed);
-        const count = spinRow(wm, 'num-workspaces', _('Number of workspaces'), null, 1, 36);
-        fixed.bind_property('active', count, 'sensitive', GObject.BindingFlags.SYNC_CREATE);
+        gnome.add(switchRow(mutter, 'dynamic-workspaces', _('Dynamic workspaces')));
+        const count = spinRow(wm, 'num-workspaces', _('Number of workspaces'),
+            _('Used when dynamic workspaces are off'), 1, 36);
+        mutter.bind('dynamic-workspaces', count, 'sensitive',
+            Gio.SettingsBindFlags.GET | Gio.SettingsBindFlags.INVERT_BOOLEAN);
         gnome.add(count);
         workspacesPage.add(gnome);
 

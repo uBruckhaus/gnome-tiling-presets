@@ -65,10 +65,12 @@ Everything is optional in Settings and on by default. Requires GNOME Shell 51.
   windows, and in the master layouts the master's share (height: floating only).
 - Workspaces without a preset of their own use the default preset from
   **Settings**, which starts as Floating, so nothing changes until you pick a layout.
-- Works with GNOME's dynamic and fixed workspaces. With dynamic workspaces GNOME
-  removes empty workspaces and renumbers the rest; for numbers that keep their
-  place like on Omarchy, turn on **Fixed number of workspaces** in Settings (it is
-  GNOME's own setting, also in Settings → Multitasking). With a fixed number, only
+- Works with GNOME's dynamic and fixed workspaces. With dynamic workspaces the
+  numbers keep their place like on Omarchy: the extension pins the workspaces up to
+  the highest one in use, the active one and the numbers always shown, so GNOME only
+  removes empty workspaces after them. Super + Shift + 8 moves a window to
+  workspace 8, creating 6–8 if needed. With **Dynamic workspaces** off in Settings
+  (GNOME's own setting, kept in step with Settings → Multitasking), only
   those workspaces get numbers and overflow only uses them (a window stays where it
   opened when none has room), because adding a workspace would raise GNOME's count
   for good. Restoring an App Preset for a workspace past the fixed number adds it.
@@ -124,6 +126,9 @@ gnome-extensions enable tiling-presets@ubruckhaus.github.io
   `prefs` (the settings window floats above a full tiled workspace).
   `focus` (focus follows the mouse between two tiled windows; GNOME's focus mode
   given back when the option or the extension is switched off).
+  `movefollow` (Super + Shift + number with a virtual keyboard; `KEY=6` for 5,
+  `WINDOWS=b` for a window alone, `BACK=1` then Super + 1, `PX`/`JIGGLE=1` for the
+  pointer, `FFM=false` without focus follows the mouse).
   Screenshots go to `dist/screenshots/`.
   `FIXED=1` runs any scenario with GNOME's fixed workspaces instead of dynamic ones.
 - `gsettings set org.gnome.shell.extensions.tiling-presets debug true` writes the

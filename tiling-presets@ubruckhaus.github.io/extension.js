@@ -9,6 +9,7 @@ import {Indicator} from './indicator.js';
 import {Shortcuts} from './shortcuts.js';
 import {Tiler} from './tiler.js';
 import {WorkspaceNumbers} from './workspaceNumbers.js';
+import {WorkspacePins} from './workspacePins.js';
 
 export default class TilingPresetsExtension extends Extension {
     enable() {
@@ -24,6 +25,8 @@ export default class TilingPresetsExtension extends Extension {
         this._numbersId = this._settings.connect('changed::show-workspace-numbers',
             () => this._syncNumbers());
         this._syncNumbers();
+        this._pins = new WorkspacePins(this._settings);
+        this._pins.enable();
 
         this._focusBorder = new FocusBorder(this._settings);
         this._focusBorder.enable();
@@ -89,6 +92,8 @@ export default class TilingPresetsExtension extends Extension {
         this._focusBorder = null;
         this._numbers?.destroy();
         this._numbers = null;
+        this._pins.disable();
+        this._pins = null;
         this._appPresets.destroy();
         this._indicator.destroy();
         this._indicator = null;

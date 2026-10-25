@@ -263,19 +263,21 @@ export class Shortcuts {
 
     // --- Workspaces -------------------------------------------------------------------
 
-    // A workspace past the last one: with dynamic workspaces that is GNOME's empty last
-    // workspace; a fixed number of workspaces is never raised.
-    _target(index, adding) {
-        const count = global.workspace_manager.n_workspaces;
-        if (index < count)
+    // A workspace past the last one: with dynamic workspaces it is created, along with
+    // the ones before it (WorkspacePins keeps them); a fixed number is never raised.
+    _target(index) {
+        const manager = global.workspace_manager;
+        if (index < manager.n_workspaces)
             return index;
         if (!Meta.prefs_get_dynamic_workspaces())
             return -1;
-        return adding ? count : count - 1;
+        while (manager.n_workspaces <= index)
+            manager.append_new_workspace(false, global.get_current_time());
+        return index;
     }
 
     _switchTo(index) {
-        const target = this._target(index, false);
+        const target = this._target(index);
         if (target >= 0)
             global.workspace_manager.get_workspace_by_index(target)?.activate(global.get_current_time());
     }
@@ -295,7 +297,7 @@ export class Shortcuts {
     _moveTo(window, index, follow) {
         if (!window || window.is_on_all_workspaces())
             return;
-        const target = this._target(index, true);
+        const target = this._target(index);
         if (target < 0 || target === window.get_workspace()?.index())
             return;
         if (follow)

@@ -49,6 +49,14 @@ TilingPresetsExtension.prototype.enable = function () {
     if (GLib.getenv("JIGGLE"))
         for (let i = 0; i < 20; i++)
             at(10070 + i * 25, () => ptr.notify_absolute_motion(now(), Number(GLib.getenv("PX") ?? 1440) + (i % 2) * 3, 540 + i));
+    if (GLib.getenv('BACK')) {
+        // Then Super+1: workspace 1 again; the moved window keeps its number.
+        at(12000, () => kbd.notify_keyval(now(), Clutter.KEY_Super_L, Clutter.KeyState.PRESSED));
+        at(12020, () => kbd.notify_key(now(), 2, Clutter.KeyState.PRESSED));
+        at(12040, () => kbd.notify_key(now(), 2, Clutter.KeyState.RELEASED));
+        at(12060, () => kbd.notify_keyval(now(), Clutter.KEY_Super_L, Clutter.KeyState.RELEASED));
+        at(12800, () => log(`after Super+1: ${state()}`));
+    }
     for (const ms of [10100, 10500, 11000, 12000, 13000])
         at(ms, () => log(`+${ms - 10000}ms: ${state()}`));
 };
