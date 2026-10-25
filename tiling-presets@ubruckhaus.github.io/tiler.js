@@ -430,6 +430,8 @@ export class Tiler {
         if (!info)
             return;
         this._stopWaiting(window, info);
+        if (info.readyId)
+            GLib.source_remove(info.readyId);
         for (const id of info.signals)
             window.disconnect(id);
         this._tracked.delete(window);
@@ -452,7 +454,13 @@ export class Tiler {
             if (!info.waiting)
                 return;
             this._stopWaiting(window, info);
-            this._onWindowReady(window);
+            // first-frame is emitted while a frame is painted: moving the window or switching
+            // workspaces there aborts Mutter (frame_in_progress), so it happens right after.
+            info.readyId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                info.readyId = 0;
+                this._onWindowReady(window);
+                return GLib.SOURCE_REMOVE;
+            });
         };
         info.waiting = {
             actor,
