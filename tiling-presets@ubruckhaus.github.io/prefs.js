@@ -218,6 +218,69 @@ export default class TilingPresetsPreferences extends ExtensionPreferences {
             ids.forEach(id => settings.disconnect(id));
             return false;
         });
+
+        // --- About -----------------------------------------------------------------
+        window.add(this._aboutPage());
+    }
+
+    // How to use the extension, and where its features come from.
+    _aboutPage() {
+        const page = new Adw.PreferencesPage({title: _('About'), icon_name: 'help-about-symbolic'});
+
+        const header = new Adw.PreferencesGroup({
+            title: `${this.metadata.name} ${this.metadata['version-name'] ?? ''}`.trim(),
+            description: _('Presets and App Presets for every GNOME workspace: a window limit and a tiling ' +
+                'layout per workspace, and the apps of a workspace saved and restored with one click.'),
+        });
+        page.add(header);
+
+        const howTo = new Adw.PreferencesGroup({title: _('How to use it')});
+        for (const [title, text] of [
+            [_('Choose a preset'),
+                _('Left-click the button in the top bar and pick a layout and a window limit for the current ' +
+                    'workspace. Workspaces without their own preset use the default preset on the Tiling page.')],
+            [_('Tiling on and off'),
+                _('Right-click the top-bar button to switch tiling off or on. Floating leaves windows as GNOME places them.')],
+            [_('Full workspaces'),
+                _('A new window that does not fit the window limit moves on to the next workspace with room.')],
+            [_('Arrange windows'),
+                _('Drag a tiled window onto another to swap them. In the master layouts, resize a window to change ' +
+                    'the master\'s share. Maximize or full screen takes a window out of the layout until you undo it.')],
+            [_('Float a window'),
+                _('Double-click a title bar on a tiled workspace to float the window above the others; double-click ' +
+                    'again to tile it.')],
+            [_('App Presets'),
+                _('In the menu, save the apps of a workspace and how they are arranged. Restore opens missing apps ' +
+                    'and rebuilds the layout, with one click or once after login.')],
+            [_('Workspace numbers'),
+                _('Click a number in the top bar to switch workspaces, or scroll over the numbers to move along.')],
+            [_('Shortcuts'),
+                _('Omarchy\'s navigation shortcuts for workspaces, focus, moving, floating and resizing. The Shortcuts ' +
+                    'page lists each one with your keyboard layout\'s keys and a switch.')],
+        ]) {
+            const row = new Adw.ActionRow({title, subtitle: text, subtitle_lines: 0});
+            row.add_css_class('property');
+            howTo.add(row);
+        }
+        page.add(howTo);
+
+        const credits = new Adw.PreferencesGroup({title: _('Credits')});
+        const link = (title, subtitle, uri) => {
+            const row = new Adw.ActionRow({title, subtitle, subtitle_lines: 0});
+            row.add_suffix(new Gtk.LinkButton({label: _('Open'), uri, valign: Gtk.Align.CENTER}));
+            credits.add(row);
+        };
+        link(_('Adapted from O-Tiling'),
+            _('Tiling features of this extension are adapted from the O-Tiling extension, so they work with ' +
+                'GNOME Shell 51, which O-Tiling does not support.'),
+            'https://extensions.gnome.org/extension/9875/o-tiling/');
+        link(_('The GNOME counterpart of Workspace Presets'),
+            _('Presets and App Presets come from the Omarchy plugin Workspace Presets by the same author.'),
+            'https://github.com/uBruckhaus/omarchy-simple-tile');
+        if (this.metadata.url)
+            link(_('Source code and issues'), this.metadata.url, this.metadata.url);
+        page.add(credits);
+        return page;
     }
 
     // The active keyboard layout as GTK sees it: key codes of a key name, and what a key
